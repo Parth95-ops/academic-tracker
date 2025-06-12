@@ -11,52 +11,69 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
+        /* All the original, aesthetic CSS is back */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
-        body { font-family: 'Poppins', sans-serif; background-color: #f4f7f6; color: #333; line-height: 1.6; }
-        .container { max-width: 1200px; margin: 20px auto; padding: 20px; }
-        .card { background: #ffffff; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 25px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background-color: #f4f7f6; color: #333; line-height: 1.6; position: relative; min-height: 100vh; padding-bottom: 60px; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 20px; display: grid; grid-template-columns: 1fr 2fr; gap: 25px; }
+        .card { background: #ffffff; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
         h1, h2, h3 { color: #2c3e50; margin-bottom: 10px; font-weight: 600; }
-        h1 { text-align: center; }
+        h1 { grid-column: 1 / -1; text-align: center; color: #34495e; padding-bottom: 15px; border-bottom: 2px solid #e0e0e0; }
+        .left-column { grid-column: 1 / 2; display: flex; flex-direction: column; gap: 25px; }
+        .right-column { grid-column: 2 / 3; display: flex; flex-direction: column; gap: 25px; }
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
-        button { width: 100%; padding: 12px; background-color: #3498db; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; transition: background-color 0.3s; }
-        button:hover { background-color: #2980b9; }
-        #all-users-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; }
-        .user-card { border: 2px solid #e0e0e0; border-radius: 12px; padding: 20px; }
-        footer { text-align: center; margin-top: 40px; color: #7f8c8d; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #555; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+        button { width: 100%; padding: 12px; background-color: #3498db; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
+        .metrics { display: flex; gap: 20px; }
+        .metric-card { flex: 1; text-align: center; padding: 20px; }
+        .review-section { grid-column: 1 / -1; margin-top: 25px; }
+        .review-item { border-bottom: 1px solid #eee; padding: 10px 0; }
+        footer { text-align: center; margin-top: 40px; color: #7f8c8d; font-size: 0.9em; }
+        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } .left-column, .right-column, .review-section, h1 { grid-column: 1 / -1; } }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🎓 Shared Academic Tracker</h1>
 
-        <!-- Form for adding data -->
-        <div class="card">
-            <h2>Add / Update Your Score</h2>
-            <form id="scoreForm">
+        <!-- Left Column for Controls -->
+        <div class="left-column">
+            <div class="profile-switcher card">
+                <h2>👤 View Dashboard</h2>
                 <div class="form-group">
-                    <label for="userName">Your Name</label>
-                    <input type="text" id="userName" placeholder="e.g., Parth" required>
+                    <label for="profileSelector">Select a Profile to View</label>
+                    <select id="profileSelector"><option>Loading users...</option></select>
                 </div>
-                <div class="form-group">
-                    <label for="subject">Subject</label>
-                    <select id="subject" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="exam">Exam</label>
-                    <select id="exam" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="score">Score</label>
-                    <input type="number" id="score" step="0.5" min="0" required>
-                </div>
-                <button type="submit">💾 Save to Cloud</button>
-            </form>
+            </div>
+
+            <div class="entry-form card">
+                <h2>📝 Add / Update Score</h2>
+                <form id="scoreForm">
+                    <div class="form-group"><label for="userName">Your Name</label><input type="text" id="userName" placeholder="Enter your name" required></div>
+                    <div class="form-group"><label for="subject">Subject</label><select id="subject" required></select></div>
+                    <div class="form-group"><label for="exam">Exam</label><select id="exam" required></select></div>
+                    <div class="form-group"><label for="score">Score</label><input type="number" id="score" step="0.5" min="0" required></div>
+                    <div class="form-group"><label for="weaknesses">Weaknesses</label><textarea id="weaknesses" placeholder="e.g., Trigonometry formulas..."></textarea></div>
+                    <button type="submit">💾 Save to Cloud</button>
+                </form>
+            </div>
         </div>
 
-        <!-- Container where all user dashboards will be dynamically created -->
-        <div id="all-users-container"></div>
+        <!-- Right Column for Displaying Data -->
+        <div class="right-column">
+            <div class="metrics">
+                <div class="metric-card card"><h3>Overall Average</h3><p id="overallAverage">--%</p></div>
+                <div class="metric-card card"><h3>Best Subject</h3><p id="bestSubject">--</p></div>
+            </div>
+            <div class="card"><h2>📊 Overall Performance</h2><canvas id="overallChart"></canvas></div>
+            <div class="card"><h2>📈 Subject Progress</h2><canvas id="subjectChart"></canvas></div>
+        </div>
+
+        <div class="review-section card">
+            <h2>🧠 Weakness Review</h2>
+            <div id="weakness-list"><p>Select a profile to view their notes.</p></div>
+        </div>
     </div>
     
     <footer>Made by Parth Soni with love ❤️</footer>
@@ -74,103 +91,160 @@
         };
         // --- END OF FIREBASE SETUP ---
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const scoresCollection = db.collection('scores');
 
-        // --- GLOBAL CONFIG & DOM ---
+        // --- GLOBAL STATE & CONFIG ---
+        let allUsersData = {};
+        let currentProfile = '';
+        let charts = {};
         const SUBJECTS = ["Hindi", "English", "Mathematics", "Science", "SST", "AI"];
         const EXAMS = ["MT1", "MT2", "MT3", "PT1", "PT2", "Pre-boards"];
         const MAX_MARKS = { "Pre-boards": 80, "default": 40 };
-        const form = document.getElementById('scoreForm');
-        const allUsersContainer = document.getElementById('all-users-container');
 
-        // --- REAL-TIME LISTENER ---
-        // This is the magic! It listens for any change in the database and re-renders everything.
+        // --- DOM REFERENCES ---
+        const profileSelector = document.getElementById('profileSelector');
+        const form = document.getElementById('scoreForm');
+        // ... (all other DOM elements are grabbed inside render functions)
+
+        // --- REAL-TIME DATA LISTENER ---
         scoresCollection.onSnapshot(snapshot => {
-            const allUsersData = {};
-            snapshot.forEach(doc => {
+            snapshot.docs.forEach(doc => {
                 allUsersData[doc.id] = doc.data();
             });
-            renderDashboards(allUsersData);
+            updateProfileSelector();
+            renderDashboardForProfile(currentProfile);
         });
 
-        // --- SAVE DATA TO FIREBASE ---
+        // --- EVENT LISTENERS ---
+        profileSelector.addEventListener('change', (e) => {
+            currentProfile = e.target.value;
+            renderDashboardForProfile(currentProfile);
+        });
+
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const userName = document.getElementById('userName').value.trim().toLowerCase();
+            if (!userName) return alert('Please enter your name!');
+            
             const subject = document.getElementById('subject').value;
             const exam = document.getElementById('exam').value;
             const score = parseFloat(document.getElementById('score').value);
-            
-            if (!userName) {
-                alert('Please enter your name!');
-                return;
-            }
+            const weakness = document.getElementById('weaknesses').value;
+            const max = MAX_MARKS[exam] || MAX_MARKS.default;
 
-            // Using dot notation to update a specific field within a map
-            const fieldPath = `${subject}.${exam}`;
-            scoresCollection.doc(userName).set({
-                [subject]: {
-                    [exam]: {
-                        score: score,
-                        max: MAX_MARKS[exam] || MAX_MARKS.default
-                    }
-                }
-            }, { merge: true }); // {merge: true} is CRITICAL. It prevents overwriting other scores.
-
-            alert(`Score for ${userName} saved successfully!`);
-            form.reset();
+            const updateData = { [`${subject}.${exam}`]: { score, max, weakness } };
+            scoresCollection.doc(userName).set(updateData, { merge: true })
+                .then(() => {
+                    alert('Score saved successfully!');
+                    form.reset();
+                });
         });
 
-        // --- DYNAMICALLY RENDER ALL DASHBOARDS ---
-        let charts = {}; // Keep track of chart instances to destroy them
-        function renderDashboards(allUsersData) {
-            allUsersContainer.innerHTML = ''; // Clear previous dashboards
+        // --- RENDER FUNCTIONS ---
+        function updateProfileSelector() {
+            const users = Object.keys(allUsersData);
+            profileSelector.innerHTML = '<option value="">-- Select Profile --</option>';
+            users.forEach(user => {
+                const displayName = user.charAt(0).toUpperCase() + user.slice(1);
+                profileSelector.innerHTML += `<option value="${user}">${displayName}</option>`;
+            });
+            profileSelector.value = currentProfile; // Keep the selected profile
+        }
 
-            for (const userName in allUsersData) {
-                const userData = allUsersData[userName];
-                
-                // Create a new card for each user
-                const userCard = document.createElement('div');
-                userCard.className = 'user-card';
-                userCard.innerHTML = `
-                    <h2>${userName.charAt(0).toUpperCase() + userName.slice(1)}'s Dashboard</h2>
-                    <canvas id="chart-${userName}"></canvas>
-                `;
-                allUsersContainer.appendChild(userCard);
+        function renderDashboardForProfile(profileName) {
+            const userData = allUsersData[profileName] || {};
+            
+            renderMetrics(userData);
+            renderOverallChart(userData);
+            renderSubjectChart(userData); // Start with a blank chart initially
+            renderWeaknessList(userData);
+        }
 
-                // Render the chart for that user
-                const subjectAverages = {};
-                for (const subject in userData) {
-                    const exams = Object.values(userData[subject]);
-                    const totalPercent = exams.reduce((acc, curr) => acc + (curr.score / curr.max * 100), 0);
-                    subjectAverages[subject] = totalPercent / exams.length;
+        function renderMetrics(data) {
+            const avgEl = document.getElementById('overallAverage');
+            const bestSubEl = document.getElementById('bestSubject');
+            
+            const allScores = [];
+            const subjectAverages = {};
+
+            for (const subject in data) {
+                let totalPercentage = 0;
+                let count = 0;
+                for (const exam in data[subject]) {
+                    const entry = data[subject][exam];
+                    const percentage = (entry.score / entry.max * 100);
+                    allScores.push(percentage);
+                    totalPercentage += percentage;
+                    count++;
                 }
-                
-                const ctx = document.getElementById(`chart-${userName}`).getContext('2d');
-                if (charts[userName]) charts[userName].destroy(); // Destroy old chart before creating new one
-                charts[userName] = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: SUBJECTS,
-                        datasets: [{
-                            label: 'Average Percentage',
-                            data: SUBJECTS.map(s => subjectAverages[s] || 0),
-                            backgroundColor: 'rgba(52, 152, 219, 0.7)'
-                        }]
-                    },
-                    options: { scales: { y: { beginAtZero: true, max: 100 } } }
-                });
+                if (count > 0) subjectAverages[subject] = totalPercentage / count;
+            }
+
+            if (allScores.length > 0) {
+                const overallAvg = allScores.reduce((a, b) => a + b, 0) / allScores.length;
+                avgEl.textContent = `${overallAvg.toFixed(2)}%`;
+                bestSubEl.textContent = Object.keys(subjectAverages).reduce((a, b) => subjectAverages[a] > subjectAverages[b] ? a : b);
+            } else {
+                avgEl.textContent = '--%';
+                bestSubEl.textContent = '--';
             }
         }
         
-        // --- INITIALIZE FORM DROPDOWNS ---
+        function renderOverallChart(data) {
+            if (charts.overall) charts.overall.destroy();
+            const subjectAverages = {};
+            for (const subject in data) {
+                const exams = Object.values(data[subject]);
+                const avg = exams.reduce((acc, curr) => acc + (curr.score / curr.max * 100), 0) / exams.length;
+                subjectAverages[subject] = avg;
+            }
+
+            const ctx = document.getElementById('overallChart').getContext('2d');
+            charts.overall = new Chart(ctx, { type: 'bar', data: { labels: SUBJECTS, datasets: [{ label: 'Average Score %', data: SUBJECTS.map(s => subjectAverages[s]), backgroundColor: 'rgba(52, 152, 219, 0.7)' }] }, options: { scales: { y: { beginAtZero: true, max: 100 } } } });
+        }
+
+        function renderSubjectChart(data) {
+            if (charts.subject) charts.subject.destroy();
+            // This chart needs a subject selected. For now, it will be blank.
+            // A future improvement could be to add a second dropdown for subject selection.
+            const subjectsWithData = Object.keys(data);
+            if (subjectsWithData.length === 0) return;
+
+            const firstSubject = subjectsWithData[0];
+            const subjectData = data[firstSubject];
+            const labels = EXAMS.filter(exam => subjectData[exam]);
+            const scores = labels.map(exam => (subjectData[exam].score / subjectData[exam].max * 100));
+
+            const ctx = document.getElementById('subjectChart').getContext('2d');
+            charts.subject = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [{ label: `Progress in ${firstSubject}`, data: scores, borderColor: '#e74c3c', tension: 0.1 }] }, options: { scales: { y: { beginAtZero: true, max: 100 } } } });
+        }
+        
+        function renderWeaknessList(data) {
+            const listEl = document.getElementById('weakness-list');
+            listEl.innerHTML = '';
+            let hasWeaknesses = false;
+            for (const subject in data) {
+                for (const exam in data[subject]) {
+                    if (data[subject][exam].weakness) {
+                        hasWeaknesses = true;
+                        const item = document.createElement('div');
+                        item.className = 'review-item';
+                        item.innerHTML = `<strong>${subject} (${exam}):</strong> ${data[subject][exam].weakness}`;
+                        listEl.appendChild(item);
+                    }
+                }
+            }
+            if (!hasWeaknesses) listEl.innerHTML = '<p>No weaknesses noted for this profile.</p>';
+        }
+
+        // --- INITIALIZE FORM ---
         const subjectSelect = document.getElementById('subject');
         const examSelect = document.getElementById('exam');
         SUBJECTS.forEach(sub => subjectSelect.innerHTML += `<option value="${sub}">${sub}</option>`);
         EXAMS.forEach(ex => examSelect.innerHTML += `<option value="${ex}">${ex}</option>`);
+
     </script>
 </body>
 </html>
