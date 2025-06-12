@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 Academic Performance Tracker</title>
+    <!-- Include Chart.js library for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- CSS for styling the application -->
+    <style>
+        /* Import a clean, modern font */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        /* Basic Resets and Body Styling */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            position: relative;
+            min-height: 100vh;
+            padding-bottom: 60px; /* Space for the footer */
+        }
+
+        /* Main container for layout */
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 25px;
+        }
+
+        /* General card styling for all sections */
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Header styling */
+        h1, h2, h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        h1 {
+            grid-column: 1 / -1; /* Span across both columns */
+            text-align: center;
+            color: #34495e;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        /* Form styling */
+        .entry-form {
+            grid-column: 1 / 2;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        /* Dashboard styling */
+        .dashboard {
+            grid-column: 2 / 3;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .metrics {
+            display: flex;
+            gap: 20px;
+        }
+
+        .metric-card {
+            flex: 1;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .metric-card h3 {
+            font-size: 1rem;
+            color: #7f8c8d;
+        }
+        
+        .metric-card p {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3498db;
+        }
+
+        /* Review sections styling */
+        .review-section {
+            grid-column: 1 / -1; /* Span both columns */
+        }
+        .review-item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        .review-item:last-child {
+            border-bottom: none;
+        }
+        .review-item strong {
+            color: #34495e;
+        }
+        .review-item a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .review-item a:hover {
+            text-decoration: underline;
+        }
+
+        /* Footer styling -- NEWLY ADDED */
+        footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            padding: 20px 0;
+            background-color: #f4f7f6;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            h1, .entry-form, .dashboard, .review-section {
+                grid-column: 1 / -1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🎓 Academic Performance Tracker</h1>
+
+        <!-- Data Entry Form -->
+        <div class="entry-form card">
+            <h2>📝 Add New Entry</h2>
+            <form id="scoreForm">
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <select id="subject" name="subject" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="exam">Exam</label>
+                    <select id="exam" name="exam" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="score">Score</label>
+                    <input type="number" id="score" name="score" step="0.5" min="0" required>
+                    <small id="maxMarksHint" style="color: #777;"></small>
+                </div>
+                <div class="form-group">
+                    <label for="weaknesses">Weaknesses / Areas for Improvement</label>
+                    <textarea id="weaknesses" name="weaknesses" placeholder="e.g., Trigonometry formulas, historical dates..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="paper">Upload Question Paper (PDF)</label>
+                    <input type="file" id="paper" name="paper" accept=".pdf">
+                </div>
+                <button type="submit">💾 Save Entry</button>
+            </form>
+        </div>
+
+        <!-- Dashboard for Visualizations -->
+        <div class="dashboard">
+            <div class="metrics">
+                <div class="metric-card card">
+                    <h3>Overall Average</h3>
+                    <p id="overallAverage">--%</p>
+                </div>
+                <div class="metric-card card">
+                    <h3>Best Subject</h3>
+                    <p id="bestSubject">--</p>
+                </div>
+            </div>
+            <div class="card">
+                <h2>📊 Overall Performance by Subject</h2>
+                <canvas id="overallChart"></canvas>
+            </div>
+            <div class="card">
+                <h2>📈 Subject Progress</h2>
+                <select id="subjectChartSelect"></select>
+                <canvas id="subjectChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Weakness Review Section -->
+        <div class="review-section card">
+            <h2>🧠 Weakness Review</h2>
+            <div id="weakness-list">
+                <p>Your notes on areas to improve will appear here.</p>
+            </div>
+        </div>
+        
+        <!-- Question Paper Vault -->
+        <div class="review-section card">
+            <h2>📂 Question Paper Vault</h2>
+            <div id="paper-vault">
+                <p>Links to your uploaded question papers will appear here.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credit Footer -- NEWLY ADDED -->
+    <footer>
+        Made by Parth Soni with love ❤️
+    </footer>
+
+    <!-- JavaScript for application logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- CONFIGURATION ---
+            const SUBJECTS = ["Hindi", "English", "Mathematics", "Science", "SST", "AI"];
+            const EXAMS = ["MT1", "MT2", "MT3", "PT1", "PT2", "Pre-boards"];
+            const MAX_MARKS = { "Pre-boards": 80, "default": 40 };
+
+            // --- DOM ELEMENT REFERENCES ---
+            const form = document.getElementById('scoreForm');
+            const subjectSelect = document.getElementById('subject');
+            const examSelect = document.getElementById('exam');
+            const scoreInput = document.getElementById('score');
+            const maxMarksHint = document.getElementById('maxMarksHint');
+            const weaknessList = document.getElementById('weakness-list');
+            const paperVault = document.getElementById('paper-vault');
+            const overallAverageEl = document.getElementById('overallAverage');
+            const bestSubjectEl = document.getElementById('bestSubject');
+            const subjectChartSelect = document.getElementById('subjectChartSelect');
+
+            let overallChartInstance, subjectChartInstance;
+
+            // --- DATA HANDLING ---
+            const loadData = () => {
+                const data = localStorage.getItem('scoresData');
+                return data ? JSON.parse(data) : {};
+            };
+
+            const saveData = (data) => {
+                localStorage.setItem('scoresData', JSON.stringify(data));
+            };
+
+            let scoresData = loadData();
+
+            // --- FORM HANDLING ---
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const subject = formData.get('subject');
+                const exam = formData.get('exam');
+                const score = parseFloat(formData.get('score'));
+                const weakness = formData.get('weaknesses');
+                const paperFile = formData.get('paper');
+
+                // Read file as a Data URL to store it in localStorage
+                let paperDataUrl = null;
+                if (paperFile && paperFile.size > 0) {
+                    paperDataUrl = await readFileAsDataURL(paperFile);
+                }
+
+                if (!scoresData[subject]) {
+                    scoresData[subject] = {};
+                }
+
+                scoresData[subject][exam] = {
+                    score: score,
+                    max: getMaxMarks(exam),
+                    weakness: weakness,
+                    paperDataUrl: paperDataUrl
+                };
+
+                saveData(scoresData);
+                alert('Entry saved successfully!');
+                form.reset();
+                renderAll();
+            });
+
+            // --- UTILITY FUNCTIONS ---
+            const getMaxMarks = (exam) => MAX_MARKS[exam] || MAX_MARKS.default;
+            const getPercentage = (score, max) => (score / max * 100).toFixed(2);
+
+            // Function to read a file and return its content as a Base64 Data URL
+            const readFileAsDataURL = (file) => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = (error) => reject(error);
+                    reader.readAsDataURL(file);
+                });
+            };
+
+            // Update score input validation based on selected exam
+            examSelect.addEventListener('change', () => {
+                const max = getMaxMarks(examSelect.value);
+                scoreInput.max = max;
+                maxMarksHint.textContent = `(Max Marks: ${max})`;
+            });
+            
+            // Populate dropdowns on page load
+            const populateDropdowns = () => {
+                SUBJECTS.forEach(sub => subjectSelect.innerHTML += `<option value="${sub}">${sub}</option>`);
+                EXAMS.forEach(ex => examSelect.innerHTML += `<option value="${ex}">${ex}</option>`);
+                // Trigger change to set initial max marks hint
+                examSelect.dispatchEvent(new Event('change'));
+            };
+
+            // --- RENDER FUNCTIONS ---
+            const renderAll = () => {
+                renderMetrics();
+                renderOverallChart();
+                renderSubjectChart();
+                renderWeaknessList();
+                renderPaperVault();
+                updateSubjectChartDropdown();
+            };
+
+            const renderMetrics = () => {
+                const allScores = [];
+                const subjectAverages = {};
+
+                for (const subject in scoresData) {
+                    let totalPercentage = 0;
+                    let count = 0;
+                    for (const exam in scoresData[subject]) {
+                        const entry = scoresData[subject][exam];
+                        const percentage = parseFloat(getPercentage(entry.score, entry.max));
+                        allScores.push(percentage);
+                        totalPercentage += percentage;
+                        count++;
+                    }
+                    if (count > 0) {
+                        subjectAverages[subject] = totalPercentage / count;
+                    }
+                }
+
+                if (allScores.length > 0) {
+                    const overallAvg = allScores.reduce((a, b) => a + b, 0) / allScores.length;
+                    overallAverageEl.textContent = `${overallAvg.toFixed(2)}%`;
+
+                    const bestSub = Object.keys(subjectAverages).reduce((a, b) => subjectAverages[a] > subjectAverages[b] ? a : b);
+                    bestSubjectEl.textContent = bestSub;
+                } else {
+                    overallAverageEl.textContent = '--%';
+                    bestSubjectEl.textContent = '--';
+                }
+            };
+            
+            const renderOverallChart = () => {
+                const labels = SUBJECTS;
+                const data = labels.map(subject => {
+                    if (!scoresData[subject]) return 0;
+                    const exams = Object.values(scoresData[subject]);
+                    if (exams.length === 0) return 0;
+                    const avg = exams.reduce((acc, curr) => acc + parseFloat(getPercentage(curr.score, curr.max)), 0) / exams.length;
+                    return avg;
+                });
+
+                if (overallChartInstance) overallChartInstance.destroy();
+                const ctx = document.getElementById('overallChart').getContext('2d');
+                overallChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Average Percentage',
+                            data: data,
+                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { scales: { y: { beginAtZero: true, max: 100 } } }
+                });
+            };
+            
+            const updateSubjectChartDropdown = () => {
+                const subjectsWithData = Object.keys(scoresData);
+                subjectChartSelect.innerHTML = subjectsWithData.map(s => `<option value="${s}">${s}</option>`).join('');
+                subjectChartSelect.addEventListener('change', renderSubjectChart);
+            };
+
+            const renderSubjectChart = () => {
+                const subject = subjectChartSelect.value;
+                if (!subject || !scoresData[subject]) {
+                    if(subjectChartInstance) subjectChartInstance.destroy(); // Clear chart if no data
+                    return;
+                }
+
+                const subjectData = scoresData[subject];
+                const labels = EXAMS.filter(exam => subjectData[exam]); // Only show exams with data
+                const data = labels.map(exam => getPercentage(subjectData[exam].score, subjectData[exam].max));
+
+                if (subjectChartInstance) subjectChartInstance.destroy();
+                const ctx = document.getElementById('subjectChart').getContext('2d');
+                subjectChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: `Progress in ${subject}`,
+                            data: data,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            fill: true,
+                            tension: 0.1
+                        }]
+                    },
+                    options: { scales: { y: { beginAtZero: true, max: 100 } } }
+                });
+            };
+
+            const renderWeaknessList = () => {
+                weaknessList.innerHTML = '';
+                let hasWeaknesses = false;
+                for (const subject in scoresData) {
+                    for (const exam in scoresData[subject]) {
+                        const weakness = scoresData[subject][exam].weakness;
+                        if (weakness) {
+                            hasWeaknesses = true;
+                            const item = document.createElement('div');
+                            item.className = 'review-item';
+                            item.innerHTML = `<strong>${subject} (${exam}):</strong> ${weakness}`;
+                            weaknessList.appendChild(item);
+                        }
+                    }
+                }
+                if (!hasWeaknesses) {
+                    weaknessList.innerHTML = '<p>Your notes on areas to improve will appear here.</p>';
+                }
+            };
+            
+            const renderPaperVault = () => {
+                paperVault.innerHTML = '';
+                let hasPapers = false;
+                for (const subject in scoresData) {
+                    for (const exam in scoresData[subject]) {
+                        const paperUrl = scoresData[subject][exam].paperDataUrl;
+                        if (paperUrl) {
+                            hasPapers = true;
+                            const item = document.createElement('div');
+                            item.className = 'review-item';
+                            item.innerHTML = `<span>${subject} - ${exam}</span>: <a href="${paperUrl}" download="${subject}_${exam}_paper.pdf">Download Paper</a>`;
+                            paperVault.appendChild(item);
+                        }
+                    }
+                }
+                if (!hasPapers) {
+                    paperVault.innerHTML = '<p>Links to your uploaded question papers will appear here.</p>';
+                }
+            };
+
+            // --- INITIALIZATION ---
+            populateDropdowns();
+            renderAll();
+        });
+    </script>
+</body>
+</html>
